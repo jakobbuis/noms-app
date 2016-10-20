@@ -23,33 +23,50 @@ export class Login {
 
     public login() {
         this.nomslogin().then(
-            (success) => { alert(success.access_token) },
+            (authorization_token) => { alert(authorization_token['code']) },
             (error) => { alert(error) }
         );
     }
 
-    public nomslogin(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            let browser = window.cordova.InAppBrowser.open('https://auth.debolk.nl/authenticate/?response_type=code&client_id=bolknoms-app&redirect_uri=http%3A%2F%2Flocalhost%2Fnoms-auth-callback&state=812887')
+    private nomslogin(): Promise<any> {
+        let url = 'https://auth.debolk.nl/authenticate/?response_type=code&client_id=bolknoms-app&redirect_uri=http%3A%2F%2Flocalhost%2Fnoms-auth-callback&state=812887';
+        let options = 'location=no,zoom=no,hardwareback=no';
 
-            browser.addEventListener('exit', (event) => { alert('Login was cancelled') });
+        return new Promise((resolve, reject) => {
+            let browser = window.cordova.InAppBrowser.open(url, '_self', options);
+
+            let exit_callback = (event) => { alert('Login was cancelled') };
+
+            browser.addEventListener('exit', exit_callback);
 
             browser.addEventListener('loadstart', (event) => {
                 if ((event.url).indexOf('http://localhost/noms-auth-callback') === 0) {
-                    browser.removeEventListener('exit', (event) => {});
+                    browser.removeEventListener('exit', exit_callback);
                     browser.close();
-                }
-                var responseParameters = ((event.url).split("#")[1]).split("&");
-                var parsedResponse = {};
-                for (var i = 0; i < responseParameters.length; i++) {
-                    parsedResponse[responseParameters[i].split("=")[0]] = responseParameters[i].split("=")[1];
-                }
-                if (parsedResponse["access_token"] !== undefined && parsedResponse["access_token"] !== null) {
-                    resolve(parsedResponse);
-                } else {
-                    reject("Problem authenticating with auth.debolk.nl");
+
+                    let parameters = this.parseURLParameters(event.url);
+                    console.log(JSON.stringify(parameters));
+
+                    if (parameters['error'] === 'access_denied') {
+                        reject('Toestemming geweigerd. Toestemming is nodig voor de app om te weten wie jij bent.');
+                    }
+                    else {
+                        resolve(parameters);
+                    }
                 }
             });
         });
+    }
+
+    private parseURLParameters(url: string) {
+        let query_string = url.split('?')[1];
+        let elements = query_string.split('&');
+
+        let result = {};
+        elements.forEach((element) => {
+            let [key, value] = element.split('=');
+            result[key] = value;
+        });
+        return result;
     }
 }
