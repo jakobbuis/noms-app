@@ -4,6 +4,7 @@ import { StatusBar } from 'ionic-native';
 
 import { Login } from '../pages/login/login';
 
+import './rxjs-operators';
 
 @Component({
   template: `<ion-nav [root]="rootPage"></ion-nav>`
