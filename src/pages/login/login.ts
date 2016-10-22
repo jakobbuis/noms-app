@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 import { CurrentUser } from '../../services/current_user';
 import { Register } from '../register/register';
+import { OAuth } from '../../services/oauth';
 
 declare var window: any;
 
@@ -11,7 +12,7 @@ declare var window: any;
 })
 export class Login {
 
-    constructor(public navCtrl: NavController) {}
+    constructor(public navCtrl: NavController, private oAuth: OAuth) {}
 
     ngAfterViewInit() {
         let user = CurrentUser.get();
@@ -23,7 +24,22 @@ export class Login {
 
     public login() {
         this.nomslogin().then(
-            (authorization_token) => { alert(authorization_token['code']) },
+            (authentication_token) => {
+                this.oAuth.getAccessToken(authentication_token.code).subscribe(
+                    (token) => {
+                        this.oAuth.getUserDetails(token.access_token).subscribe(
+                            (user_details) => {
+                                console.log(`User details: ${JSON.stringify(user_details)}`);
+                                CurrentUser.set({ id: user_details.user_id, oauth: token});
+                                this.navCtrl.pop();
+                                this.navCtrl.push(Register);
+                            },
+                            (error) => { alert(`Kan de gegevens van jouw account (gebruikersnaam, etc) niet ophalen\n\nTechnische details: ${error}`) }
+                        );
+                    },
+                    (error) => { alert(`Er ging iets verkeerd bij het valideren van je token. Probeer opnieuw.\n\nTechnische details: ${error}`) }
+                );
+            },
             (error) => { alert(error) }
         );
     }
@@ -35,17 +51,11 @@ export class Login {
         return new Promise((resolve, reject) => {
             let browser = window.cordova.InAppBrowser.open(url, '_self', options);
 
-            let exit_callback = (event) => { alert('Login was cancelled') };
-
-            browser.addEventListener('exit', exit_callback);
-
             browser.addEventListener('loadstart', (event) => {
                 if ((event.url).indexOf('http://localhost/noms-auth-callback') === 0) {
-                    browser.removeEventListener('exit', exit_callback);
                     browser.close();
 
                     let parameters = this.parseURLParameters(event.url);
-                    console.log(JSON.stringify(parameters));
 
                     if (parameters['error'] === 'access_denied') {
                         reject('Toestemming geweigerd. Toestemming is nodig voor de app om te weten wie jij bent.');

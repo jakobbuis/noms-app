@@ -1,7 +1,6 @@
-import { OAuthToken } from './oauth_token';
+import { AccessToken } from './oauth/access_token';
 
 export interface User {
-    name: string;
     id: string;
-    oauth?: OAuthToken;
+    oauth?: AccessToken;
 }
