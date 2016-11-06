@@ -12,10 +12,10 @@ declare var window: any;
 })
 export class Login {
 
-    constructor(public navCtrl: NavController, private oAuth: OAuth) {}
+    constructor(public navCtrl: NavController, private oAuth: OAuth, private currentUser : CurrentUser) {}
 
     ionViewDidLoad() {
-        let user = CurrentUser.get();
+        let user = this.currentUser.get();
         if (user != null) {
             // WORKAROUND Ionic 2 RC0: navigating in ngAfterViewInit only works wrapped in setTimeout
             setTimeout(() => { this.navCtrl.setRoot(Register) }, 1);
@@ -30,7 +30,7 @@ export class Login {
                         this.oAuth.getUserDetails(token.access_token).subscribe(
                             (user_details) => {
                                 console.log(`User details: ${JSON.stringify(user_details)}`);
-                                CurrentUser.set({ id: user_details.user_id, oauth: token});
+                                this.currentUser.set({ id: user_details.user_id, oauth: token});
                                 this.navCtrl.pop();
                                 this.navCtrl.push(Register);
                             },

@@ -7,7 +7,12 @@
 </ion-header>
 
 <ion-content padding>
-    <button ion-button class="button button-royal" (click)="register()">
-        Aanmelden voor de eerstvolgende maaltijd
-    </button>
+    <h1>Aankomende maaltijden</h1>
+    <ul>
+        <li *ngFor="let meal of meals">
+            <button ion-button class="button button-royal" (click)="register(meal)">
+                {{ meal.meal_timestamp }}
+            </button>
+        </li>
+    </ul>
 </ion-content>
