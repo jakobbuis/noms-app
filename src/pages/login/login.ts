@@ -18,7 +18,7 @@ export class Login {
         let user = CurrentUser.get();
         if (user != null) {
             // WORKAROUND Ionic 2 RC0: navigating in ngAfterViewInit only works wrapped in setTimeout
-            setTimeout(() => { this.navCtrl.pop(); this.navCtrl.push(Register) }, 1);
+            setTimeout(() => { this.navCtrl.setRoot(Register) }, 1);
         }
     }
 
