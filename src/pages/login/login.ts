@@ -14,7 +14,7 @@ export class Login {
 
     constructor(public navCtrl: NavController, private oAuth: OAuth) {}
 
-    ngAfterViewInit() {
+    ionViewDidLoad() {
         let user = CurrentUser.get();
         if (user != null) {
             // WORKAROUND Ionic 2 RC0: navigating in ngAfterViewInit only works wrapped in setTimeout
